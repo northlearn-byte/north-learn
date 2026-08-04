@@ -26,19 +26,25 @@ export const SubscriptionModal = ({ isOpen, onClose }) => {
 
   if (!isOpen) return null;
 
-  const handleRedeem = () => {
+  const handleRedeem = async () => {
     if (!redeemInput.trim()) return;
     setIsRedeeming(true);
-    const result = redeemCode(redeemInput);
-    setRedeemResult(result);
-    setIsRedeeming(false);
-    if (result.success) {
-      confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
-      setTimeout(() => {
-        setRedeemResult(null);
-        setRedeemInput('');
-        onClose();
-      }, 2500);
+    try {
+      const result = await redeemCode(redeemInput);
+      setRedeemResult(result);
+      setIsRedeeming(false);
+      if (result && result.success) {
+        confetti({ particleCount: 150, spread: 90, origin: { y: 0.5 } });
+        setTimeout(() => {
+          setRedeemResult(null);
+          setRedeemInput('');
+          onClose();
+        }, 2500);
+      }
+    } catch (err) {
+      console.error(err);
+      setRedeemResult({ success: false, message: 'An error occurred. Please try again.' });
+      setIsRedeeming(false);
     }
   };
 

@@ -358,14 +358,19 @@ const CodeManager = () => {
     setResult(null);
   };
 
-  const handlePublish = () => {
+  const handlePublish = async () => {
     if (!codeInput.trim()) { setResult({ success: false, message: 'Enter a code first.' }); return; }
-    const res = publishRedeemCode(codeInput, labelInput, codeValidityDays, accessDays);
-    setResult(res);
-    if (res.success) {
-      setCodeInput('');
-      setLabelInput('');
-      setTimeout(() => setResult(null), 3000);
+    try {
+      const res = await publishRedeemCode(codeInput, labelInput, codeValidityDays, accessDays);
+      setResult(res);
+      if (res && res.success) {
+        setCodeInput('');
+        setLabelInput('');
+        setTimeout(() => setResult(null), 3000);
+      }
+    } catch (err) {
+      console.error(err);
+      setResult({ success: false, message: 'Failed to create code. Try again.' });
     }
   };
 
