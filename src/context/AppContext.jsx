@@ -2,9 +2,8 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth, db } from '../services/firebase';
 import { 
   onAuthStateChanged, 
-  sendSignInLinkToEmail, 
-  isSignInWithEmailLink, 
-  signInWithEmailLink, 
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
   signOut 
 } from 'firebase/auth';
 import { 
@@ -194,34 +193,31 @@ export const AppProvider = ({ children }) => {
     }
   };
 
-  // ── Firebase Login Link Sender (Verification Code Link) ───────────────────
-  const sendVerificationEmail = async (email) => {
-    const actionCodeSettings = {
-      // Direct back to your app
-      url: window.location.href, 
-      handleCodeInApp: true,
-    };
-    await sendSignInLinkToEmail(auth, email, actionCodeSettings);
-    // Save email locally to complete sign-in upon return
-    window.localStorage.setItem('emailForSignIn', email);
+  // ── Email + Password Auth ─────────────────────────────────────────────────
+  const registerUser = async (email, password) => {
+    try {
+      await createUserWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      return { success: true };
+    } catch (err) {
+      const msg = err.code === 'auth/email-already-in-use'
+        ? 'This email is already registered. Try logging in.'
+        : err.code === 'auth/weak-password'
+        ? 'Password must be at least 6 characters.'
+        : err.message;
+      return { success: false, message: msg };
+    }
   };
 
-  // Complete sign-in from email link
-  const completeSignInWithLink = async () => {
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      let email = window.localStorage.getItem('emailForSignIn');
-      if (!email) {
-        // Fallback prompt if opened on another browser/device
-        email = window.prompt('Please provide your email for confirmation:');
-      }
-      if (email) {
-        setLoading(true);
-        const result = await signInWithEmailLink(auth, email, window.location.href);
-        window.localStorage.removeItem('emailForSignIn');
-        return result.user;
-      }
+  const loginUser = async (email, password) => {
+    try {
+      await signInWithEmailAndPassword(auth, email.trim().toLowerCase(), password);
+      return { success: true };
+    } catch (err) {
+      const msg = err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential'
+        ? 'Incorrect email or password.'
+        : err.message;
+      return { success: false, message: msg };
     }
-    return null;
   };
 
   const logoutUser = async () => {
@@ -451,7 +447,7 @@ export const AppProvider = ({ children }) => {
         audioSpeed, setAudioSpeed,
         stats, addXp,
         vocabulary, saveWord, deleteWord,
-        user, sendVerificationEmail, completeSignInWithLink, logoutUser,
+        user, loginUser, registerUser, logoutUser,
         isOwner,
         isPro, subDetails, redeemCode,
         dynamicCodes, publishRedeemCode, deleteRedeemCode,
