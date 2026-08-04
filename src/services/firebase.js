@@ -1,10 +1,10 @@
 import { initializeApp } from 'firebase/app';
-import { getAuth, sendSignInLinkToEmail, isSignInWithEmailLink, signInWithEmailLink, signOut } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 import { getFirestore } from 'firebase/firestore';
 
 // Your web app's Firebase configuration from screenshot
 const firebaseConfig = {
-  apiKey: "AIzaSyCQQsTmBvHpHpUEhyA5WVUfKN8utzD3ZGH10",
+  apiKey: "AIzaSyCQQsTmBvHpUEhyA5wVUfKN8utzD3ZGH10",
   authDomain: "north-learn.firebaseapp.com",
   projectId: "north-learn",
   storageBucket: "north-learn.firebasestorage.app",
