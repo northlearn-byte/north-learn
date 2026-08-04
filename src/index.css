@@ -1,0 +1,77 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    touch-action: manipulation;
+  }
+  body {
+    @apply antialiased overflow-x-hidden;
+    -webkit-tap-highlight-color: transparent;
+  }
+  * {
+    -webkit-font-smoothing: antialiased;
+  }
+  /* Prevent horizontal scroll on mobile */
+  main, section, div {
+    max-width: 100%;
+  }
+  /* Better tap targets on mobile */
+  button {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* Glassmorphism & Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600 transition-colors;
+}
+
+.glass-card {
+  @apply bg-white/80 dark:bg-slate-800/80 backdrop-blur-md border border-slate-200/80 dark:border-slate-700/80 shadow-lg shadow-slate-200/50 dark:shadow-none;
+}
+
+.story-word {
+  @apply inline-block px-1 py-0.5 rounded cursor-pointer transition-all duration-200 hover:bg-sky-100 dark:hover:bg-sky-950/70 hover:text-sky-600 dark:hover:text-sky-400 font-medium;
+}
+
+.story-word.active-word {
+  @apply bg-amber-200 dark:bg-amber-900/60 text-amber-900 dark:text-amber-200 ring-2 ring-amber-400 dark:ring-amber-500 scale-105 shadow-sm;
+}
+
+.story-word.saved-word {
+  @apply underline decoration-sky-400 decoration-2 underline-offset-4;
+}
+
+.flip-card {
+  perspective: 1000px;
+}
+
+.flip-card-inner {
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  transform-style: preserve-3d;
+}
+
+.flip-card.flipped .flip-card-inner {
+  transform: rotateY(180deg);
+}
+
+.flip-card-front, .flip-card-back {
+  backface-visibility: hidden;
+}
+
+.flip-card-back {
+  transform: rotateY(180deg);
+}
