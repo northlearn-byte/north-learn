@@ -1,9 +1,11 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { auth, db } from '../services/firebase';
 import { 
   onAuthStateChanged, 
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
   signOut 
 } from 'firebase/auth';
 import { 
@@ -222,6 +224,44 @@ export const AppProvider = ({ children }) => {
 
   const logoutUser = async () => {
     await signOut(auth);
+  };
+
+  // ── Phone Auth ────────────────────────────────────────────────────────────
+  const setupRecaptcha = (containerId) => {
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+      window.recaptchaVerifier = null;
+    }
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: 'invisible',
+      callback: () => {},
+    });
+  };
+
+  const sendPhoneOtp = async (phoneNumber) => {
+    try {
+      setupRecaptcha('recaptcha-container');
+      const confirmResult = await signInWithPhoneNumber(auth, phoneNumber, window.recaptchaVerifier);
+      window.confirmationResult = confirmResult;
+      return { success: true };
+    } catch (err) {
+      const msg = err.code === 'auth/invalid-phone-number'
+        ? 'Invalid phone number. Use format: +966XXXXXXXXX'
+        : err.code === 'auth/too-many-requests'
+        ? 'Too many attempts. Try again later.'
+        : err.message;
+      return { success: false, message: msg };
+    }
+  };
+
+  const verifyPhoneOtp = async (otp) => {
+    try {
+      if (!window.confirmationResult) return { success: false, message: 'Session expired. Resend the code.' };
+      await window.confirmationResult.confirm(otp);
+      return { success: true };
+    } catch (err) {
+      return { success: false, message: 'Incorrect code. Try again.' };
+    }
   };
 
   // ── Realtime DB Updaters ──────────────────────────────────────────────────
@@ -447,7 +487,7 @@ export const AppProvider = ({ children }) => {
         audioSpeed, setAudioSpeed,
         stats, addXp,
         vocabulary, saveWord, deleteWord,
-        user, loginUser, registerUser, logoutUser,
+        user, loginUser, registerUser, logoutUser, sendPhoneOtp, verifyPhoneOtp,
         isOwner,
         isPro, subDetails, redeemCode,
         dynamicCodes, publishRedeemCode, deleteRedeemCode,
