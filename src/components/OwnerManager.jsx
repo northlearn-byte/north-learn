@@ -669,22 +669,27 @@ const StatsOverview = ({ stories, dynamicCodes }) => {
 // ─── Main Owner Manager Component ─────────────────────────────────────────────
 export const OwnerManager = () => {
   const { isOwner, user, stories, addStory, dynamicCodes, setIsAuthOpen } = useApp();
-  const [section, setSection] = useState('codes'); // 'codes' | 'stories'
+  const [section, setSection] = useState('codes'); // 'codes' | 'stories' | 'team'
 
-  // Guard: not owner
-  if (!isOwner) {
+  // Sub-Admin check
+  const subAdmins = JSON.parse(localStorage.getItem('north_learn_sub_admins') || '[]');
+  const isSubAdmin = user?.email && subAdmins.some(a => a.email.toLowerCase() === user.email.toLowerCase());
+  const hasAccess = isOwner || isSubAdmin;
+
+  // Guard: not owner or sub-admin
+  if (!hasAccess) {
     return (
       <div className="max-w-xl mx-auto px-4 py-24 text-center">
         <div className="w-20 h-20 mx-auto rounded-3xl bg-rose-500/10 flex items-center justify-center mb-6">
           <AlertTriangle className="w-10 h-10 text-rose-500" />
         </div>
         <h2 className="text-2xl font-black text-slate-800 dark:text-slate-100 mb-2">Restricted Access</h2>
-        <p className="text-slate-500 text-sm mb-6">This panel is only accessible to the App Owner.</p>
+        <p className="text-slate-500 text-sm mb-6">This panel is only accessible to the App Owner and Authorized Sub-Admins.</p>
         <button
           onClick={() => setIsAuthOpen(true)}
           className="px-6 py-3 rounded-2xl bg-sky-600 hover:bg-sky-500 text-white font-bold text-sm shadow-md transition-all"
         >
-          Sign In as Owner
+          Sign In
         </button>
       </div>
     );

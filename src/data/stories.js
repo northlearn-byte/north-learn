@@ -51,8 +51,11 @@ const createStory = (id, title, level, category, readTime, isKids, image, p1En, 
   return { id, title, level, category, readTime, length, isKids, image, paragraphs };
 };
 
+import { EXTRA_STORIES } from './extraStories';
+
 // Generate 15 Stories per Level (A1, A2, B1, B2, C1, C2) + 15 Kids Tales
 export const INITIAL_STORIES = [
+  ...EXTRA_STORIES,
   // --- LEVEL A1 (15 Stories) ---
   createStory('a1-1', 'The Lost Key in Tokyo', 'A1', 'Adventure', '3 min', false, 'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?q=80&w=800&auto=format&fit=crop', 'Kenji walked through the quiet streets of Tokyo early in the morning.', 'مشى كينجي في شوارع طوكيو الهادئة في الصباح الباكر.', 'He reached for his coat pocket, but his golden key was missing.', 'وصل إلى جيب معطفه، لكن مفتاحه الذهبي كان مفقوداً.'),
   createStory('a1-2', 'A Morning at the Bakery', 'A1', 'Daily Life', '2 min', false, 'https://images.unsplash.com/photo-1509440159596-0249088772ff?q=80&w=800&auto=format&fit=crop', 'The smell of fresh bread filled the neighborhood every morning.', 'ملأت رائحة الخبز الطازج الحي كل صباح.', 'Elena always bought a chocolate croissant and a small coffee.', 'كانت إلينا تشتري دائماً كرواسون بالشوكولاتة وقهوة صغيرة.'),
