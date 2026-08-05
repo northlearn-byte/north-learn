@@ -1,3 +1,5 @@
+import { EXTRA_STORIES } from './extraStories';
+
 export const LANGUAGES = [
   { code: 'ar', name: 'Arabic', nativeName: 'العربية', flag: '🇸🇦', dir: 'rtl' },
   { code: 'es', name: 'Spanish', nativeName: 'Español', flag: '🇪🇸', dir: 'ltr' },
@@ -50,8 +52,6 @@ const createStory = (id, title, level, category, readTime, isKids, image, p1En, 
 
   return { id, title, level, category, readTime, length, isKids, image, paragraphs };
 };
-
-import { EXTRA_STORIES } from './extraStories';
 
 // Generate 15 Stories per Level (A1, A2, B1, B2, C1, C2) + 15 Kids Tales
 export const INITIAL_STORIES = [
