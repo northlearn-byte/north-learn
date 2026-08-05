@@ -1,9 +1,12 @@
 import React from 'react';
 import { useApp, FREE_STORIES_PER_LEVEL } from '../context/AppContext';
-import { Play, Star, Lock, Crown } from 'lucide-react';
+import { Play, Star, Lock, Crown, Clock } from 'lucide-react';
+
+const LENGTH_COLORS = { short: 'bg-emerald-500', medium: 'bg-amber-500', long: 'bg-rose-500' };
+const LENGTH_EMOJI  = { short: '⚡', medium: '📖', long: '📚' };
 
 export const KidsSection = () => {
-  const { stories, selectStory, currentLanguageObj, isPro, isOwner, setIsSubOpen } = useApp();
+  const { stories, selectStory, currentLanguageObj, isPro, isOwner, setIsSubOpen, t } = useApp();
 
   const kidsStories = stories.filter(s => s.isKids || s.category === 'Kids & Tales');
 
@@ -27,17 +30,17 @@ export const KidsSection = () => {
       <div className="relative rounded-3xl bg-gradient-to-r from-pink-500 via-purple-500 to-indigo-500 p-8 sm:p-12 text-white shadow-2xl overflow-hidden mb-10 border-4 border-yellow-300">
         <div className="relative z-10 max-w-xl">
           <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-yellow-300 text-slate-950 font-black text-xs uppercase tracking-wider mb-4 shadow-lg">
-            🧸 Kids Zone | Tales & Wonder
+            🧸 {t('Kids Zone')} | {t('Tales & Wonder')}
           </span>
           <h1 className="text-3xl sm:text-5xl font-black mb-4 leading-tight drop-shadow-md">
-            Fun Stories & Tales for Little Explorers! 🎨
+            {t('Fun Stories & Tales for Little Explorers! 🎨')}
           </h1>
           <p className="text-pink-100 text-sm sm:text-base leading-relaxed font-semibold">
-            Listen to fun voices, click any word to translate into{' '}
-            <span className="underline font-bold text-yellow-300">{currentLanguageObj?.name}</span>, and collect magic stars!
+            {t('Listen to fun voices, click any word to translate into')}{' '}
+            <span className="underline font-bold text-yellow-300">{currentLanguageObj?.name}</span>{t(', and collect magic stars!')}
             {!isPro && (
               <span className="block mt-1 text-yellow-200">
-                ✨ Free: 3 tales available. <button onClick={() => setIsSubOpen(true)} className="underline font-black text-white hover:text-yellow-300">Unlock all 15 with PRO 👑</button>
+                ✨ {t('Free: 3 tales available.')} <button onClick={() => setIsSubOpen(true)} className="underline font-black text-white hover:text-yellow-300">{t('Unlock all 15 with PRO 👑')}</button>
               </span>
             )}
           </p>
@@ -68,6 +71,13 @@ export const KidsSection = () => {
                   <div className="absolute top-3 left-3 bg-yellow-400 text-slate-950 px-3 py-1 rounded-full text-xs font-black shadow-md flex items-center gap-1">
                     <Star className="w-3.5 h-3.5 fill-slate-950" /> {story.level}
                   </div>
+                  {story.length && (
+                    <div className="absolute top-3 right-3">
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-black text-white ${LENGTH_COLORS[story.length] || 'bg-slate-500'}`}>
+                        {LENGTH_EMOJI[story.length]} {t(story.length === 'short' ? 'Short' : story.length === 'medium' ? 'Medium' : 'Long')}
+                      </span>
+                    </div>
+                  )}
 
                   {/* PRO Lock overlay for locked stories */}
                   {locked && (
@@ -99,11 +109,11 @@ export const KidsSection = () => {
                     onClick={() => setIsSubOpen(true)}
                     className="w-full py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm shadow-lg flex items-center justify-center gap-2"
                   >
-                    <Crown className="w-4 h-4 fill-slate-950" /> Unlock with PRO
+                    <Crown className="w-4 h-4 fill-slate-950" /> {t('Unlock with PRO')}
                   </button>
                 ) : (
                   <button className="w-full py-3 rounded-2xl bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-black text-sm shadow-lg shadow-pink-500/30 flex items-center justify-center gap-2">
-                    <Play className="w-4 h-4 fill-white" /> Listen & Read Tale
+                    <Play className="w-4 h-4 fill-white" /> {t('Listen & Read Tale')}
                   </button>
                 )}
               </div>

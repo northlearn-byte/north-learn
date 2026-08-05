@@ -18,7 +18,7 @@ const formatExpiry = (isoDate) => {
 };
 
 export const SubscriptionModal = ({ isOpen, onClose }) => {
-  const { isPro, subDetails, isOwner, redeemCode, toggleProSubscription } = useApp();
+  const { isPro, subDetails, isOwner, redeemCode, toggleProSubscription, t } = useApp();
 
   const [redeemInput, setRedeemInput] = useState('');
   const [redeemResult, setRedeemResult] = useState(null);

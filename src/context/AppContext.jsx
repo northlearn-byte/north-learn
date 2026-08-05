@@ -20,6 +20,7 @@ import {
   onSnapshot 
 } from 'firebase/firestore';
 import { INITIAL_STORIES, LANGUAGES, translateWord } from '../data/stories';
+import { UI_TRANSLATIONS } from '../data/translations';
 
 const AppContext = createContext();
 
@@ -59,6 +60,20 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
+
+  // Sync direction (RTL/LTR) and language attributes to HTML tag
+  useEffect(() => {
+    const langObj = LANGUAGES.find(l => l.code === targetLang);
+    document.documentElement.dir = langObj?.dir || 'ltr';
+    document.documentElement.lang = targetLang;
+  }, [targetLang]);
+
+  const t = (key) => {
+    if (UI_TRANSLATIONS[targetLang] && UI_TRANSLATIONS[targetLang][key] !== undefined) {
+      return UI_TRANSLATIONS[targetLang][key];
+    }
+    return key;
+  };
 
   // 1. Firebase Auth listener
   useEffect(() => {
@@ -483,6 +498,7 @@ export const AppProvider = ({ children }) => {
     <AppContext.Provider
       value={{
         targetLang, setTargetLang,
+        t,
         darkMode, setDarkMode,
         audioSpeed, setAudioSpeed,
         stats, addXp,

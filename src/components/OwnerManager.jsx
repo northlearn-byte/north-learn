@@ -508,6 +508,143 @@ const CodeManager = () => {
   );
 };
 
+// ─── Sub-Admin Manager Component ────────────────────────────────────────────
+const SubAdminManager = () => {
+  const [subAdmins, setSubAdmins] = useState(() => {
+    const saved = localStorage.getItem('north_learn_sub_admins');
+    return saved ? JSON.parse(saved) : [
+      { id: '1', email: 'editor@northlearn.com', name: 'Content Manager', role: 'Editor', canAddStories: true, canManageCodes: false },
+      { id: '2', email: 'support@northlearn.com', name: 'Support Mod', role: 'Moderator', canAddStories: false, canManageCodes: true }
+    ];
+  });
+
+  const [newEmail, setNewEmail] = useState('');
+  const [newName, setNewName] = useState('');
+  const [canAddStories, setCanAddStories] = useState(true);
+  const [canManageCodes, setCanManageCodes] = useState(false);
+
+  const handleAddSubAdmin = (e) => {
+    e.preventDefault();
+    if (!newEmail.trim()) return;
+    const newAdmin = {
+      id: Date.now().toString(),
+      email: newEmail.trim(),
+      name: newName.trim() || 'Sub-Admin',
+      role: 'Sub-Admin',
+      canAddStories,
+      canManageCodes
+    };
+    const updated = [newAdmin, ...subAdmins];
+    setSubAdmins(updated);
+    localStorage.setItem('north_learn_sub_admins', JSON.stringify(updated));
+    setNewEmail('');
+    setNewName('');
+  };
+
+  const handleRemove = (id) => {
+    const updated = subAdmins.filter(a => a.id !== id);
+    setSubAdmins(updated);
+    localStorage.setItem('north_learn_sub_admins', JSON.stringify(updated));
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-black text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <Users className="w-5 h-5 text-amber-500" /> Administrative Team & Sub-Admins
+          </h3>
+          <p className="text-xs text-slate-400">
+            Assign team members limited permissions (e.g. adding stories or managing promo codes) without full owner access.
+          </p>
+        </div>
+      </div>
+
+      {/* Add Sub-Admin Form */}
+      <form onSubmit={handleAddSubAdmin} className="p-5 rounded-2xl bg-amber-500/5 border border-amber-500/20 space-y-4">
+        <h4 className="text-xs font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">Assign New Sub-Admin</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <input
+            type="email"
+            required
+            placeholder="Sub-Admin Email Address"
+            value={newEmail}
+            onChange={e => setNewEmail(e.target.value)}
+            className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+          <input
+            type="text"
+            placeholder="Name / Title (e.g. Story Editor)"
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            className="px-4 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
+        {/* Permissions checkboxes */}
+        <div className="flex flex-wrap gap-4 text-xs font-bold text-slate-700 dark:text-slate-300 pt-1">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={canAddStories}
+              onChange={e => setCanAddStories(e.target.checked)}
+              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+            />
+            <span>Can Add & Edit Stories 📚</span>
+          </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={canManageCodes}
+              onChange={e => setCanManageCodes(e.target.checked)}
+              className="w-4 h-4 rounded text-amber-500 focus:ring-amber-500"
+            />
+            <span>Can Manage Promo Codes 🎟️</span>
+          </label>
+        </div>
+
+        <button
+          type="submit"
+          className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-md transition-all"
+        >
+          Add Sub-Admin Member
+        </button>
+      </form>
+
+      {/* Sub-Admins List */}
+      <div className="space-y-3">
+        {subAdmins.map(admin => (
+          <div key={admin.id} className="p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-500 flex items-center justify-center font-bold">
+                <ShieldCheck className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-2">
+                  {admin.name} <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold">{admin.email}</span>
+                </div>
+                <div className="text-xs text-slate-400 flex gap-3 mt-1">
+                  <span>Perms:</span>
+                  {admin.canAddStories && <span className="text-sky-500 font-bold">✓ Add Stories</span>}
+                  {admin.canManageCodes && <span className="text-emerald-500 font-bold">✓ Promo Codes</span>}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={() => handleRemove(admin.id)}
+              className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+              title="Remove Sub-Admin"
+            >
+              <Trash2 className="w-4 h-4" />
+            </button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 // ─── Stats Overview ───────────────────────────────────────────────────────────
 const StatsOverview = ({ stories, dynamicCodes }) => {
   const cards = [
@@ -601,6 +738,13 @@ export const OwnerManager = () => {
           label="Add Story"
           color="sky"
         />
+        <SectionTab
+          active={section === 'team'}
+          onClick={() => setSection('team')}
+          icon={Users}
+          label="Sub-Admins & Permissions"
+          color="amber"
+        />
       </div>
 
       {/* Content Panel */}
@@ -615,6 +759,7 @@ export const OwnerManager = () => {
             <StoryForm onPublish={addStory} />
           </div>
         )}
+        {section === 'team' && <SubAdminManager />}
       </div>
     </div>
   );

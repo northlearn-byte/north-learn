@@ -18,7 +18,7 @@ import {
 import { STORIES } from '../data/stories';
 
 export const Dashboard = () => {
-  const { stats, vocabulary, currentLanguageObj, setActiveTab, user, addStory, deleteStory } = useApp();
+  const { stats, vocabulary, currentLanguageObj, setActiveTab, user, addStory, deleteStory, t, isOwner: ctxIsOwner } = useApp();
 
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(15);
   const [downloadedStories, setDownloadedStories] = useState(['a1-1', 'a1-2']);
@@ -31,11 +31,16 @@ export const Dashboard = () => {
   const [newEnText, setNewEnText] = useState('');
   const [newArText, setNewArText] = useState('');
 
-  const toggleDownloadStory = (storyId) => {
-    if (downloadedStories.includes(storyId)) {
-      setDownloadedStories(prev => prev.filter(id => id !== storyId));
+  const toggleDownloadStory = (story, indexInLevel) => {
+    const isLocked = !isPro && !isOwner && indexInLevel >= FREE_STORIES_PER_LEVEL;
+    if (isLocked) {
+      setIsSubOpen(true);
+      return;
+    }
+    if (downloadedStories.includes(story.id)) {
+      setDownloadedStories(prev => prev.filter(id => id !== story.id));
     } else {
-      setDownloadedStories(prev => [...prev, storyId]);
+      setDownloadedStories(prev => [...prev, story.id]);
     }
   };
 
@@ -80,7 +85,7 @@ export const Dashboard = () => {
 
   const progressPercent = Math.min(100, Math.round((stats.minutesToday / dailyGoalMinutes) * 100));
 
-  const isOwner = user?.role === 'owner' || user?.email === 'abooodiv96@gmail.com';
+  const isOwner = ctxIsOwner || user?.role === 'owner' || user?.email === 'abooodiv96@gmail.com';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -89,7 +94,7 @@ export const Dashboard = () => {
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-slate-100 flex items-center gap-3">
-            <span>User Dashboard & Progress</span>
+            <span>{t('User Dashboard & Progress')}</span>
             {isOwner && (
               <span className="px-3 py-1 bg-amber-500/20 text-amber-500 text-xs rounded-full font-black flex items-center gap-1 border border-amber-500/40">
                 <Crown className="w-4 h-4 fill-amber-500" /> System Owner
@@ -97,7 +102,7 @@ export const Dashboard = () => {
             )}
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
-            Track daily reading goals, manage offline downloaded stories, and review streak milestones.
+            {t('Track daily reading goals, manage offline downloaded stories, and review streak milestones.')}
           </p>
         </div>
 
@@ -281,8 +286,8 @@ export const Dashboard = () => {
               <div className="flex items-center gap-3">
                 <Target className="w-6 h-6 text-sky-500" />
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  Daily Reading Goal
-                </h2>
+                {t('Daily Reading Goal')}
+              </h2>
               </div>
               
               <div className="flex items-center gap-2">
@@ -317,7 +322,7 @@ export const Dashboard = () => {
             </div>
 
             <p className="text-xs text-slate-400 flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> Keep reading stories to maintain your daily streak!
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" /> {t('Keep reading stories to maintain your daily streak!')}
             </p>
           </div>
 
@@ -327,32 +332,48 @@ export const Dashboard = () => {
               <Download className="w-6 h-6 text-emerald-500" />
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
-                  Offline Story Manager
-                </h2>
-                <p className="text-xs text-slate-400">
-                  Download stories to read anytime without an internet connection.
-                </p>
+                {t('Offline Story Manager')}
+              </h2>
+              <p className="text-xs text-slate-400">
+                {t('Download stories to read anytime without an internet connection.')}
+              </p>
               </div>
             </div>
 
             <div className="space-y-4">
-              {STORIES.map((story) => {
+              {stories.map((story) => {
                 const isDownloaded = downloadedStories.includes(story.id);
+                // Calculate position in level for free limit check
+                const levelStories = stories.filter(s => s.level === story.level);
+                const indexInLevel = levelStories.findIndex(s => s.id === story.id);
+                const isLocked = !isPro && !isOwner && indexInLevel >= FREE_STORIES_PER_LEVEL;
 
                 return (
                   <div
                     key={story.id}
-                    className="flex items-center justify-between p-4 rounded-2xl bg-slate-100 dark:bg-slate-800/60 border border-slate-200/60 dark:border-slate-700/60"
+                    className={`flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                      isLocked 
+                        ? 'bg-slate-100/50 dark:bg-slate-800/30 border-slate-200/40 dark:border-slate-700/40 opacity-75' 
+                        : 'bg-slate-100 dark:bg-slate-800/60 border-slate-200/60 dark:border-slate-700/60'
+                    }`}
                   >
                     <div className="flex items-center gap-4">
-                      <img 
-                        src={story.image} 
-                        alt={story.title} 
-                        className="w-12 h-12 rounded-xl object-cover"
-                      />
+                      <div className="relative">
+                        <img 
+                          src={story.image} 
+                          alt={story.title} 
+                          className={`w-12 h-12 rounded-xl object-cover ${isLocked ? 'grayscale' : ''}`}
+                        />
+                        {isLocked && (
+                          <div className="absolute inset-0 bg-slate-950/60 rounded-xl flex items-center justify-center">
+                            <Lock className="w-5 h-5 text-amber-400" />
+                          </div>
+                        )}
+                      </div>
                       <div>
-                        <div className="font-bold text-slate-900 dark:text-slate-100 text-sm">
+                        <div className="font-bold text-slate-900 dark:text-slate-100 text-sm flex items-center gap-1.5">
                           {story.title}
+                          {isLocked && <Crown className="w-3.5 h-3.5 text-amber-500 fill-amber-500/20 inline" />}
                         </div>
                         <div className="text-xs text-slate-400 flex items-center gap-2 mt-0.5">
                           <span className="font-bold text-sky-500">{story.level}</span>
@@ -373,24 +394,33 @@ export const Dashboard = () => {
                         </button>
                       )}
 
-                      <button
-                        onClick={() => toggleDownloadStory(story.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          isDownloaded
-                            ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40'
-                            : 'bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/20'
-                        }`}
-                      >
-                        {isDownloaded ? (
-                          <>
-                            <CheckCircle2 className="w-4 h-4" /> Offline Ready
-                          </>
-                        ) : (
-                          <>
-                            <Download className="w-4 h-4" /> Download
-                          </>
-                        )}
-                      </button>
+                      {isLocked ? (
+                        <button
+                          onClick={() => setIsSubOpen(true)}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-black bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 shadow-md hover:scale-105 transition-all"
+                        >
+                          <Crown className="w-3.5 h-3.5 fill-slate-950" /> {t('PRO Only')}
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => toggleDownloadStory(story, indexInLevel)}
+                          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            isDownloaded
+                              ? 'bg-emerald-500/20 text-emerald-500 border border-emerald-500/40'
+                              : 'bg-sky-600 hover:bg-sky-500 text-white shadow-md shadow-sky-600/20'
+                          }`}
+                        >
+                          {isDownloaded ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4" /> Offline Ready
+                            </>
+                          ) : (
+                            <>
+                              <Download className="w-4 h-4" /> Download
+                            </>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </div>
                 );
@@ -437,7 +467,7 @@ export const Dashboard = () => {
               onClick={() => setActiveTab('catalog')}
               className="w-full py-2.5 rounded-xl bg-white text-sky-700 font-extrabold text-xs shadow-md hover:bg-sky-50 transition-colors"
             >
-              Continue Reading Stories
+              {t('Continue Reading Stories')}
             </button>
           </div>
 

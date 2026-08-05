@@ -9,6 +9,7 @@ import { KidsSection } from './components/KidsSection';
 import { OwnerManager } from './components/OwnerManager';
 import { AuthModal } from './components/AuthModal';
 import { SubscriptionModal } from './components/SubscriptionModal';
+import { Translator } from './components/Translator';
 
 const MainContent = () => {
   const { activeTab, isAuthOpen, setIsAuthOpen, isSubOpen, setIsSubOpen } = useApp();
@@ -21,6 +22,7 @@ const MainContent = () => {
       {activeTab === 'vocab' && <VocabularyBank />}
       {activeTab === 'dashboard' && <Dashboard />}
       {activeTab === 'manager' && <OwnerManager />}
+      {activeTab === 'translator' && <Translator />}
 
       {/* Auth & Subscription Modals */}
       <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />

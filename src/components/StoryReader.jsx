@@ -25,7 +25,8 @@ export const StoryReader = () => {
     stopSpeech, 
     saveWord, 
     vocabulary, 
-    setActiveTab 
+    setActiveTab,
+    t
   } = useApp();
 
   const [showFullTranslation, setShowFullTranslation] = useState(false);
@@ -101,12 +102,12 @@ export const StoryReader = () => {
   if (!selectedStory) {
     return (
       <div className="max-w-4xl mx-auto px-4 py-12 text-center">
-        <p className="text-slate-500">No story selected.</p>
+        <p className="text-slate-500">{t('No story selected.')}</p>
         <button 
           onClick={() => setActiveTab('catalog')}
           className="mt-4 px-4 py-2 bg-sky-600 text-white rounded-lg"
         >
-          Return to Library
+          {t('Return to Library')}
         </button>
       </div>
     );
@@ -128,7 +129,7 @@ export const StoryReader = () => {
           className="flex items-center gap-2 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-sky-600 dark:hover:text-sky-400 transition-colors"
         >
           <ArrowLeft className="w-4 h-4" />
-          Back to Stories
+          {t('Back to Stories')}
         </button>
 
         <div className="flex items-center gap-2">
@@ -178,7 +179,7 @@ export const StoryReader = () => {
             </>
           ) : (
             <>
-              <Play className="w-4 h-4 fill-white" /> Read Full Story
+              <Play className="w-4 h-4 fill-white" /> {t('Read Full Story')}
             </>
           )}
         </button>
@@ -193,7 +194,7 @@ export const StoryReader = () => {
           }`}
         >
           <Globe className="w-4 h-4 text-amber-500" />
-          {showFullTranslation ? 'Hide Translations' : 'Translate Full Story'}
+          {showFullTranslation ? t('Hide Translations') : t('Translate Full Story')}
         </button>
 
         {/* Speed Controller */}
@@ -247,16 +248,29 @@ export const StoryReader = () => {
               </p>
 
               {/* Dual-View Paragraph Translation (When toggled on) */}
-              {showFullTranslation && (
-                <div 
-                  className={`mt-4 pt-4 border-t border-slate-200/80 dark:border-slate-700/80 text-base sm:text-lg text-sky-700 dark:text-sky-300 font-medium ${
-                    currentLanguageObj?.dir === 'rtl' ? 'font-arabic text-right' : 'text-left'
-                  }`}
-                  dir={currentLanguageObj?.dir || 'ltr'}
-                >
-                  {para.translations[targetLang] || para.translations['ar']}
-                </div>
-              )}
+              {showFullTranslation && (() => {
+                let transText = para.translations?.[targetLang];
+                // If translation is missing or a static placeholder like [ES] ..., translate dynamically!
+                if (!transText || transText.startsWith('[') || targetLang === 'ar' && !para.translations.ar) {
+                  const words = para.en.split(' ');
+                  transText = words.map(w => {
+                    const clean = w.replace(/[^a-zA-Z]/g, '').toLowerCase();
+                    const translated = translateWord(clean, targetLang);
+                    return translated.startsWith('ترجمة') ? w : translated;
+                  }).join(' ');
+                }
+
+                return (
+                  <div 
+                    className={`mt-4 pt-4 border-t border-slate-200/80 dark:border-slate-700/80 text-base sm:text-lg text-sky-700 dark:text-sky-300 font-medium ${
+                      currentLanguageObj?.dir === 'rtl' ? 'font-arabic text-right' : 'text-left'
+                    }`}
+                    dir={currentLanguageObj?.dir || 'ltr'}
+                  >
+                    {transText}
+                  </div>
+                );
+              })()}
             </div>
           );
         })}
@@ -305,15 +319,15 @@ export const StoryReader = () => {
           >
             {savedSuccess ? (
               <>
-                <Check className="w-4 h-4 text-emerald-400" /> Saved! (+15 XP)
+                <Check className="w-4 h-4 text-emerald-400" /> {t('Saved! (+15 XP)')}
               </>
             ) : activeWordInfo.isSaved ? (
               <>
-                <Bookmark className="w-4 h-4 text-emerald-400" /> In Dictionary
+                <Bookmark className="w-4 h-4 text-emerald-400" /> {t('In Dictionary')}
               </>
             ) : (
               <>
-                <Star className="w-4 h-4 fill-white" /> Save Word (+15 XP)
+                <Star className="w-4 h-4 fill-white" /> {t('Save Word (+15 XP)')}
               </>
             )}
           </button>

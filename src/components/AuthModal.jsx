@@ -3,7 +3,7 @@ import { useApp } from '../context/AppContext';
 import { X, Mail, Lock, Eye, EyeOff, Crown, ShieldCheck, LogIn, UserPlus, RefreshCw, Phone, MessageSquare, ChevronLeft } from 'lucide-react';
 
 export const AuthModal = ({ isOpen, onClose }) => {
-  const { user, loginUser, registerUser, logoutUser, sendPhoneOtp, verifyPhoneOtp } = useApp();
+  const { user, loginUser, registerUser, logoutUser, sendPhoneOtp, verifyPhoneOtp, t } = useApp();
 
   // 'login' | 'register' | 'phone' | 'otp'
   const [mode, setMode] = useState('login');

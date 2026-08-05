@@ -16,7 +16,7 @@ import {
 import confetti from 'canvas-confetti';
 
 export const VocabularyBank = () => {
-  const { vocabulary, deleteWord, speakText, targetLang, currentLanguageObj, addXp, setActiveTab } = useApp();
+  const { vocabulary, deleteWord, speakText, targetLang, currentLanguageObj, addXp, setActiveTab, t } = useApp();
 
   const [viewMode, setViewMode] = useState('cards'); // 'cards' | 'flashcards' | 'quiz'
   const [currentFlashIndex, setCurrentFlashIndex] = useState(0);
@@ -83,16 +83,16 @@ export const VocabularyBank = () => {
           <Bookmark className="w-10 h-10 text-amber-500" />
         </div>
         <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-200 mb-2">
-          Your Vocabulary Bank is Empty
+          {t('Your Vocabulary Bank is Empty')}
         </h2>
         <p className="text-slate-500 dark:text-slate-400 max-w-md mx-auto mb-6 text-sm">
-          Save words while reading interactive stories by clicking on any word to translate and star it!
+          {t('Save words while reading interactive stories by clicking on any word to translate and star it!')}
         </p>
         <button
           onClick={() => setActiveTab('catalog')}
           className="px-6 py-3 rounded-xl bg-sky-600 hover:bg-sky-500 text-white font-bold shadow-lg shadow-sky-600/30 transition-all hover:scale-105 inline-flex items-center gap-2"
         >
-          <BookOpen className="w-5 h-5" /> Explore Stories
+          <BookOpen className="w-5 h-5" /> {t('Explore Stories')}
         </button>
       </div>
     );
@@ -115,13 +115,13 @@ export const VocabularyBank = () => {
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-slate-100 flex items-center gap-3">
-            <span>Saved Vocabulary Bank</span>
+            <span>{t('Saved Vocabulary Bank')}</span>
             <span className="text-sm px-3 py-1 bg-sky-500/10 text-sky-600 dark:text-sky-400 rounded-full font-bold">
               {filteredVocab.length} Words ({currentLanguageObj?.name})
             </span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Review your dictionary, practice with 3D flashcards, or test your memory with quizzes.
+            {t('Review your dictionary, practice with 3D flashcards, or test your memory with quizzes.')}
           </p>
         </div>
 
@@ -135,7 +135,7 @@ export const VocabularyBank = () => {
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Bookmark className="w-4 h-4" /> Bank List
+            <Bookmark className="w-4 h-4" /> {t('Bank List')}
           </button>
           <button
             onClick={() => {
@@ -149,7 +149,7 @@ export const VocabularyBank = () => {
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Layers className="w-4 h-4" /> 3D Flashcards
+            <Layers className="w-4 h-4" /> {t('3D Flashcards')}
           </button>
           <button
             onClick={() => {
@@ -162,7 +162,7 @@ export const VocabularyBank = () => {
                 : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
             }`}
           >
-            <Award className="w-4 h-4 text-amber-500" /> Quiz Mode
+            <Award className="w-4 h-4 text-amber-500" /> {t('Quiz Mode')}
           </button>
         </div>
       </div>
@@ -233,7 +233,7 @@ export const VocabularyBank = () => {
               {/* Front Side */}
               <div className="flip-card-front absolute inset-0 glass-card rounded-3xl p-8 flex flex-col items-center justify-center text-center border-2 border-sky-500/30">
                 <span className="text-xs uppercase tracking-widest text-sky-500 font-bold mb-4">
-                  English Word
+                  {t('English Word')}
                 </span>
                 <h2 className="text-4xl font-black text-slate-900 dark:text-slate-50 capitalize mb-4">
                   {filteredVocab[currentFlashIndex]?.word}
@@ -248,7 +248,7 @@ export const VocabularyBank = () => {
                   <Volume2 className="w-6 h-6" />
                 </button>
                 <span className="text-xs text-slate-400 mt-6 flex items-center gap-1">
-                  <RotateCw className="w-3.5 h-3.5" /> Click card to reveal translation
+                  <RotateCw className="w-3.5 h-3.5" /> {t('Click card to reveal translation')}
                 </span>
               </div>
 
@@ -287,7 +287,7 @@ export const VocabularyBank = () => {
               onClick={handleNextFlashcard}
               className="flex-1 py-3 rounded-xl bg-sky-600 text-white font-bold text-sm hover:bg-sky-500 transition-colors shadow-md shadow-sky-600/20"
             >
-              Next Card
+              {t('Next Card')}
             </button>
           </div>
         </div>
@@ -308,7 +308,7 @@ export const VocabularyBank = () => {
 
               <div className="text-center mb-8">
                 <span className="text-xs font-extrabold uppercase tracking-wider text-sky-500">
-                  Select the correct translation
+                  {t('Select the correct translation')}
                 </span>
                 <h2 className="text-3xl sm:text-4xl font-extrabold text-slate-900 dark:text-slate-50 capitalize mt-2">
                   "{currentQuizWord?.word}"
@@ -352,7 +352,7 @@ export const VocabularyBank = () => {
             <div className="glass-card rounded-3xl p-8 text-center border border-slate-200 dark:border-slate-800 shadow-2xl">
               <Award className="w-20 h-20 text-amber-500 mx-auto mb-4 animate-bounce" />
               <h2 className="text-3xl font-black text-slate-900 dark:text-slate-50 mb-2">
-                Quiz Completed!
+                {t('Quiz Completed!')}
               </h2>
               <p className="text-slate-500 dark:text-slate-400 mb-6">
                 You scored <span className="font-bold text-sky-500">{quizScore} / {filteredVocab.length}</span> correct answers!
@@ -361,7 +361,7 @@ export const VocabularyBank = () => {
                 onClick={restartQuiz}
                 className="px-6 py-3 rounded-xl bg-sky-600 text-white font-bold text-sm shadow-lg shadow-sky-600/30 hover:scale-105 transition-transform"
               >
-                Try Again
+                {t('Try Again')}
               </button>
             </div>
           )}
