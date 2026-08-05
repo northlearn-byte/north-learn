@@ -291,6 +291,5 @@ export const translateWord = (cleanWord, targetLangCode) => {
     return WORD_DICTIONARY[stem][targetLangCode];
   }
 
-  if (targetLangCode === 'ar') return `ترجمة الكلمة: "${raw}"`;
   return raw;
 };

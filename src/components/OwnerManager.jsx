@@ -169,15 +169,55 @@ const StoryForm = ({ onPublish }) => {
     setForm(f => ({ ...f, paragraphs: f.paragraphs.filter((_, idx) => idx !== i) }));
   };
 
+  const [translatingIdx, setTranslatingIdx] = useState(null);
+
+  const autoTranslateParagraph = async (i) => {
+    const textEn = form.paragraphs[i]?.en;
+    if (!textEn || !textEn.trim()) return;
+    setTranslatingIdx(i);
+    try {
+      const res = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(textEn)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const translated = data?.[0]?.map(item => item[0]).join('') || '';
+        if (translated) {
+          handleParagraphChange(i, 'ar', translated);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to auto translate paragraph:', e);
+    } finally {
+      setTranslatingIdx(null);
+    }
+  };
+
   const handlePublish = () => {
     if (!form.title.trim()) { setResult({ success: false, message: 'Story title is required.' }); return; }
     if (!form.paragraphs[0].en.trim()) { setResult({ success: false, message: 'At least one English paragraph is required.' }); return; }
 
     setPublishing(true);
+    const mins = parseInt(form.readTime) || 3;
+    const length = mins <= 3 ? 'short' : mins <= 5 ? 'medium' : 'long';
+
     const newStory = {
       id: `custom-${Date.now()}`,
       ...form,
-      paragraphs: form.paragraphs.filter(p => p.en.trim()),
+      length,
+      paragraphs: form.paragraphs.filter(p => p.en.trim()).map((p, idx) => ({
+        id: `custom-${Date.now()}-p${idx + 1}`,
+        en: p.en,
+        translations: {
+          ar: p.ar || p.en,
+          es: `[ES] ${p.en}`,
+          fr: `[FR] ${p.en}`,
+          de: `[DE] ${p.en}`,
+          zh: `[ZH] ${p.en}`,
+          ja: `[JA] ${p.en}`,
+          ru: `[RU] ${p.en}`
+        }
+      })),
       custom: true
     };
     onPublish(newStory);
@@ -225,14 +265,19 @@ const StoryForm = ({ onPublish }) => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Read Time</label>
-          <input
-            type="text"
-            placeholder="e.g. 4 min"
+          <label className="block text-xs font-bold text-slate-500 mb-1.5 uppercase tracking-wide">Read Time & Length</label>
+          <select
             value={form.readTime}
             onChange={e => setForm(f => ({ ...f, readTime: e.target.value }))}
             className="w-full px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none"
-          />
+          >
+            <option value="2 min">2 min — Short (قصيرة)</option>
+            <option value="3 min">3 min — Short (قصيرة)</option>
+            <option value="4 min">4 min — Medium (وسط)</option>
+            <option value="5 min">5 min — Medium (وسط)</option>
+            <option value="7 min">7 min — Long (طويلة)</option>
+            <option value="10 min">10 min — Long (طويلة)</option>
+          </select>
         </div>
 
         <div>
@@ -282,13 +327,25 @@ const StoryForm = ({ onPublish }) => {
                 />
               </div>
               <div>
-                <label className="text-xs text-slate-400 font-semibold mb-1 block">🌍 Translation (optional)</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-xs text-slate-400 font-semibold block">🌍 Translation</label>
+                  <button
+                    type="button"
+                    onClick={() => autoTranslateParagraph(i)}
+                    disabled={translatingIdx === i || !para.en.trim()}
+                    className="text-xs font-extrabold text-sky-500 hover:text-sky-400 disabled:opacity-40 flex items-center gap-1"
+                  >
+                    <Zap className="w-3 h-3" />
+                    {translatingIdx === i ? 'Translating...' : 'Auto-Translate 🪄'}
+                  </button>
+                </div>
                 <textarea
                   rows={2}
                   placeholder="Arabic / other translation..."
                   value={para.ar}
                   onChange={e => handleParagraphChange(i, 'ar', e.target.value)}
-                  className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none resize-none"
+                  className="w-full px-3 py-2.5 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none resize-none font-arabic"
+                  dir="rtl"
                 />
               </div>
             </div>

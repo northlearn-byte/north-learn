@@ -33,8 +33,29 @@ export const Dashboard = () => {
   const [newTitle, setNewTitle] = useState('');
   const [newLevel, setNewLevel] = useState('A1');
   const [newCategory, setNewCategory] = useState('Daily Life');
+  const [newLength, setNewLength] = useState('short'); // 'short' | 'medium' | 'long'
   const [newEnText, setNewEnText] = useState('');
   const [newArText, setNewArText] = useState('');
+  const [autoTranslating, setAutoTranslating] = useState(false);
+
+  const handleAutoTranslateText = async () => {
+    if (!newEnText.trim()) return;
+    setAutoTranslating(true);
+    try {
+      const res = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=ar&dt=t&q=${encodeURIComponent(newEnText)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const translated = data?.[0]?.map(item => item[0]).join('') || '';
+        if (translated) setNewArText(translated);
+      }
+    } catch (err) {
+      console.error('Auto translate failed:', err);
+    } finally {
+      setAutoTranslating(false);
+    }
+  };
 
   const toggleDownloadStory = (story, indexInLevel) => {
     const isLocked = !isPro && !ctxIsOwner && indexInLevel >= FREE_STORIES_PER_LEVEL;
@@ -53,12 +74,15 @@ export const Dashboard = () => {
     e.preventDefault();
     if (!newTitle || !newEnText) return;
 
+    const readTimeMap = { short: '2 min', medium: '4 min', long: '7 min' };
+
     const newStory = {
       id: `custom-${Date.now()}`,
       title: newTitle,
       level: newLevel,
       category: newCategory,
-      readTime: '3 min',
+      readTime: readTimeMap[newLength] || '3 min',
+      length: newLength,
       isKids: newCategory === 'Kids & Tales',
       image: 'https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?q=80&w=800&auto=format&fit=crop',
       paragraphs: [
@@ -66,13 +90,13 @@ export const Dashboard = () => {
           id: `p-${Date.now()}`,
           en: newEnText,
           translations: {
-            ar: newArText || `ترجمة: ${newEnText}`,
-            es: `Traducción: ${newEnText}`,
-            fr: `Traduction: ${newEnText}`,
-            de: `Übersetzung: ${newEnText}`,
-            zh: `翻译: ${newEnText}`,
-            ja: `翻訳: ${newEnText}`,
-            ru: `Перевод: ${newEnText}`
+            ar: newArText || newEnText,
+            es: `[ES] ${newEnText}`,
+            fr: `[FR] ${newEnText}`,
+            de: `[DE] ${newEnText}`,
+            zh: `[ZH] ${newEnText}`,
+            ja: `[JA] ${newEnText}`,
+            ru: `[RU] ${newEnText}`
           }
         }
       ]
@@ -144,7 +168,7 @@ export const Dashboard = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs font-bold text-slate-500 mb-1">Level</label>
                   <select
@@ -169,6 +193,18 @@ export const Dashboard = () => {
                     ))}
                   </select>
                 </div>
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1">Length</label>
+                  <select
+                    value={newLength}
+                    onChange={(e) => setNewLength(e.target.value)}
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm border border-slate-200 dark:border-slate-700"
+                  >
+                    <option value="short">Short (قصيرة)</option>
+                    <option value="medium">Medium (وسط)</option>
+                    <option value="long">Long (طويلة)</option>
+                  </select>
+                </div>
               </div>
 
               <div>
@@ -184,10 +220,21 @@ export const Dashboard = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1">Arabic Translation</label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="block text-xs font-bold text-slate-500">Arabic Translation</label>
+                  <button
+                    type="button"
+                    onClick={handleAutoTranslateText}
+                    disabled={autoTranslating || !newEnText.trim()}
+                    className="flex items-center gap-1 text-xs font-extrabold text-sky-500 hover:text-sky-400 disabled:opacity-50"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    {autoTranslating ? 'Translating...' : 'Google Auto-Translate 🪄'}
+                  </button>
+                </div>
                 <textarea
                   rows={3}
-                  placeholder="ادخل النصف المترجم للعربية..."
+                  placeholder="ادخل النص المترجم للعربية..."
                   value={newArText}
                   onChange={(e) => setNewArText(e.target.value)}
                   className="w-full px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-sm focus:ring-2 focus:ring-amber-500 border border-slate-200 dark:border-slate-700 font-arabic"

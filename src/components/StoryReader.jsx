@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
+import { translateWord } from '../data/stories';
 import { 
   Play, 
   Square, 
@@ -48,14 +49,14 @@ export const StoryReader = () => {
       if (res.ok) {
         const data = await res.json();
         const result = data?.[0]?.[0]?.[0];
-        if (result) {
+        if (result && result.toLowerCase() !== word.toLowerCase()) {
           translateCache.current[cacheKey] = result;
           return result;
         }
       }
     } catch (_) {}
 
-    // Fallback: MyMemory API
+    // Fallback 1: MyMemory API
     try {
       const res2 = await fetch(
         `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|${langCode}`
@@ -63,14 +64,21 @@ export const StoryReader = () => {
       if (res2.ok) {
         const data2 = await res2.json();
         const result2 = data2?.responseData?.translatedText;
-        if (result2 && result2 !== word) {
+        if (result2 && result2.toLowerCase() !== word.toLowerCase()) {
           translateCache.current[cacheKey] = result2;
           return result2;
         }
       }
     } catch (_) {}
 
-    return word; // return original if all fail
+    // Fallback 2: Local Dictionary
+    const localDictRes = translateWord(word, langCode);
+    if (localDictRes) {
+      translateCache.current[cacheKey] = localDictRes;
+      return localDictRes;
+    }
+
+    return word;
   };
 
   // Full story audio player logic
