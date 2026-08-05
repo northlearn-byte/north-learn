@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../context/AppContext';
-import { translateWord } from '../data/stories';
 import { 
   Play, 
   Square, 
@@ -31,9 +30,48 @@ export const StoryReader = () => {
 
   const [showFullTranslation, setShowFullTranslation] = useState(false);
   const [isPlayingFull, setIsPlayingFull] = useState(false);
-  const [activeWordInfo, setActiveWordInfo] = useState(null); // { word, translation, rect }
+  const [activeWordInfo, setActiveWordInfo] = useState(null);
   const [highlightWordIndex, setHighlightWordIndex] = useState(null);
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [isTranslating, setIsTranslating] = useState(false);
+  const translateCache = useRef({});
+
+  // Translate a single word via Google Translate free API
+  const translateWordOnline = async (word, langCode) => {
+    const cacheKey = `${word}__${langCode}`;
+    if (translateCache.current[cacheKey]) return translateCache.current[cacheKey];
+
+    try {
+      const res = await fetch(
+        `https://translate.googleapis.com/translate_a/single?client=gtx&sl=en&tl=${langCode}&dt=t&q=${encodeURIComponent(word)}`
+      );
+      if (res.ok) {
+        const data = await res.json();
+        const result = data?.[0]?.[0]?.[0];
+        if (result) {
+          translateCache.current[cacheKey] = result;
+          return result;
+        }
+      }
+    } catch (_) {}
+
+    // Fallback: MyMemory API
+    try {
+      const res2 = await fetch(
+        `https://api.mymemory.translated.net/get?q=${encodeURIComponent(word)}&langpair=en|${langCode}`
+      );
+      if (res2.ok) {
+        const data2 = await res2.json();
+        const result2 = data2?.responseData?.translatedText;
+        if (result2 && result2 !== word) {
+          translateCache.current[cacheKey] = result2;
+          return result2;
+        }
+      }
+    } catch (_) {}
+
+    return word; // return original if all fail
+  };
 
   // Full story audio player logic
   const handleToggleFullAudio = () => {
@@ -73,23 +111,27 @@ export const StoryReader = () => {
     return () => stopSpeech();
   }, []);
 
-  const handleWordClick = (e, cleanWord, fullParagraphEn) => {
+  const handleWordClick = async (e, cleanWord, fullParagraphEn) => {
     e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
-    const translation = translateWord(cleanWord, targetLang);
     const isSaved = vocabulary.some(v => v.word.toLowerCase() === cleanWord.toLowerCase());
 
-    setActiveWordInfo({
-      word: cleanWord,
-      translation,
-      example: fullParagraphEn,
-      rect,
-      isSaved
-    });
+    // Show popup immediately with loading state
+    setActiveWordInfo({ word: cleanWord, translation: null, example: fullParagraphEn, rect, isSaved });
     setSavedSuccess(false);
+    setIsTranslating(true);
 
-    // Speak single word immediately
+    // Speak word immediately
     speakText(cleanWord, 'en-US', 0.9);
+
+    // Fetch translation from Google Translate API
+    const translation = await translateWordOnline(cleanWord, targetLang);
+    setIsTranslating(false);
+    setActiveWordInfo(prev =>
+      prev && prev.word === cleanWord
+        ? { ...prev, translation }
+        : prev
+    );
   };
 
   const handleSaveActiveWord = () => {
@@ -300,20 +342,32 @@ export const StoryReader = () => {
           </div>
 
           <div 
-            className={`text-xl font-semibold text-amber-300 mb-3 ${
-              currentLanguageObj?.dir === 'rtl' ? 'font-arabic text-right' : 'text-left'
+            className={`text-xl font-semibold text-amber-300 mb-3 min-h-[2rem] flex items-center gap-2 ${
+              currentLanguageObj?.dir === 'rtl' ? 'font-arabic flex-row-reverse' : ''
             }`}
             dir={currentLanguageObj?.dir || 'ltr'}
           >
-            {activeWordInfo.translation}
+            {isTranslating ? (
+              <span className="flex items-center gap-2 text-sm text-slate-400">
+                <svg className="animate-spin w-4 h-4 text-amber-400" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                </svg>
+                {currentLanguageObj?.flag} جاري الترجمة...
+              </span>
+            ) : (
+              <span>{currentLanguageObj?.flag} {activeWordInfo.translation}</span>
+            )}
           </div>
 
           <button
             onClick={handleSaveActiveWord}
-            disabled={activeWordInfo.isSaved || savedSuccess}
+            disabled={isTranslating || activeWordInfo.isSaved || savedSuccess}
             className={`w-full flex items-center justify-center gap-2 py-2 px-3 rounded-xl text-xs font-bold transition-all ${
               activeWordInfo.isSaved || savedSuccess
                 ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/40'
+                : isTranslating
+                ? 'bg-slate-700/60 text-slate-500 cursor-not-allowed'
                 : 'bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-md'
             }`}
           >

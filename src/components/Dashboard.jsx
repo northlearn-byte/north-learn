@@ -15,10 +15,15 @@ import {
   Plus,
   Trash2
 } from 'lucide-react';
-import { STORIES } from '../data/stories';
+import { FREE_STORIES_PER_LEVEL } from '../context/AppContext';
+import { LEVELS, CATEGORIES } from '../data/stories';
 
 export const Dashboard = () => {
-  const { stats, vocabulary, currentLanguageObj, setActiveTab, user, addStory, deleteStory, t, isOwner: ctxIsOwner } = useApp();
+  const { 
+    stats, vocabulary, currentLanguageObj, setActiveTab, user,
+    addStory, deleteStory, t, stories,
+    isOwner: ctxIsOwner, isPro, setIsSubOpen
+  } = useApp();
 
   const [dailyGoalMinutes, setDailyGoalMinutes] = useState(15);
   const [downloadedStories, setDownloadedStories] = useState(['a1-1', 'a1-2']);
@@ -32,7 +37,7 @@ export const Dashboard = () => {
   const [newArText, setNewArText] = useState('');
 
   const toggleDownloadStory = (story, indexInLevel) => {
-    const isLocked = !isPro && !isOwner && indexInLevel >= FREE_STORIES_PER_LEVEL;
+    const isLocked = !isPro && !ctxIsOwner && indexInLevel >= FREE_STORIES_PER_LEVEL;
     if (isLocked) {
       setIsSubOpen(true);
       return;
@@ -85,7 +90,8 @@ export const Dashboard = () => {
 
   const progressPercent = Math.min(100, Math.round((stats.minutesToday / dailyGoalMinutes) * 100));
 
-  const isOwner = ctxIsOwner || user?.role === 'owner' || user?.email === 'abooodiv96@gmail.com';
+  const isOwner = ctxIsOwner || user?.email === 'abooodiv96@gmail.com';
+  const STORIES = stories || [];
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
